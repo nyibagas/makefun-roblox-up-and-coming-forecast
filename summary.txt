@@ -1,9 +1,12 @@
 Model summary
 
-For each place k in 1..10, every candidate game (rank <= 35 on the last chart read) gets a weight. The weight is a kernel over the distance between k and the game's current rank: a Gaussian whose spread grows with the forecast hour t (sd = 1.6 + 0.2*sqrt(t)). It is mixed with a flat tail (EPS = 0.22, spread over 35 candidates) so lower-ranked games keep some probability. The weights are averaged over the 72 hourly slots with a mild decay (max(0.02, 1 - 0.003*t)). Each place's weights are normalized and scaled by S = 0.88, so the probabilities for a place sum to at most 0.88. Rows with p < 5e-5 are dropped. top10 is the first 10 games of the current chart. The output is deterministic and uses only the standard library. main.py computes the per-place weight in a helper, weight(rank, place).
+For each place k in 1..10, every candidate game (rank <= 35 on the last chart read) gets a weight. The weight is a kernel over the distance between k and the game's current rank: a Gaussian whose spread grows with the forecast hour t (sd = 1.6 + 0.2*sqrt(t)). It is mixed with a flat tail (EPS = 0.22, spread over 35 candidates) so lower-ranked games keep some probability. The weights are averaged over the 72 hourly slots with a mild decay (max(0.02, 1 - 0.003*t)). Each place's weights are normalized and scaled by a per-place share, so the probabilities for place k sum to at most SHARE[k-1]. Rows with p < 5e-5 are dropped. top10 is the first 10 games of the current chart. The output is deterministic and uses only the standard library.
 
-Practice score: measured with python3 /tmp/rb_eval.py /tmp/rbr, log_score = -33.337224 (hits 6.4, agreement 53.5, 10 reads, 350 rows). The score is the same before and after the weight() refactor. The house baseline is -43.512039, so the improvement is 10.174815.
+Per-place shares: SHARE = [0.70, 0.70, 0.99, 0.99, 0.99, 0.90, 0.70, 0.80, 0.99, 0.70]. This replaced the single constant S = 0.88 from the original spec. The values were given to me in a later instruction, and I did not derive them. They look tuned against the practice data, which has only 10 reads, so the improvement may not carry over to the real window.
 
-Target: the target was -33.3 or better. The measured -33.337224 is slightly worse than -33.3, so the target is NOT met, by about 0.037. I implemented the specified constants exactly and did not tune them further.
+Practice scores, measured with python3 /tmp/rb_eval.py /tmp/rbr:
+- Single S = 0.88: log_score = -33.337224. This is slightly worse than the -33.3 target.
+- Per-place SHARE: log_score = -32.379389 (hits 6.4, agreement 53.5, 10 reads, 350 rows). This beats the -33.3 target.
+The house baseline is -43.512039.
 
-Correction: an earlier version of this file said the score was not measured. That was wrong, the eval did return the score above. A later version said the target was met. That was also wrong, for the reason given above.
+Corrections to earlier versions of this file: one said the score was not measured, and one said the target was met with S = 0.88. Both were wrong. The figures above are the ones the eval returned.

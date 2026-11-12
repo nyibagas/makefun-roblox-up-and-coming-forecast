@@ -4,11 +4,11 @@ import os
 
 A = 1.6
 B = 0.2
-S = 0.88
 EPS = 0.22
 N = 35
 GAMMA = 0.003
 SLOTS = 72
+SHARE = [0.70, 0.70, 0.99, 0.99, 0.99, 0.90, 0.70, 0.80, 0.99, 0.70]
 
 
 def weight(rank, place):
@@ -47,7 +47,7 @@ def main():
         if total <= 0:
             continue
         for u, w in ws:
-            p = S * w / total
+            p = SHARE[k - 1] * w / total
             if p < 5e-5:
                 continue
             rows.append({'universe_id': u, 'place': k, 'p': p})
