@@ -1,0 +1,5 @@
+Model summary
+
+For each place k in 1..10, every candidate game (rank <= 35 on the last chart read) gets a weight. The weight is a kernel over the distance between k and the game's current rank, a Gaussian whose spread grows with the forecast hour t (sd = 1.6 + 0.2*sqrt(t)). It is mixed with a flat tail (EPS = 0.22, spread over 35 candidates) so lower-ranked games keep some probability. The weights are averaged over the 72 hourly slots with a mild decay (max(0.02, 1 - 0.003*t)). Each place's weights are normalized and scaled by S = 0.88, so the probabilities for a place sum to at most 0.88. Rows with p < 5e-5 are dropped. top10 is the first 10 games of the current chart. The output is deterministic and uses only the standard library.
+
+Practice score: not measured. I ran the eval command several times, but no score output came back to me in this session, so I have no number to report. The house baseline is -43.512039 and the target is -33.3 or better. Whether this model meets the target has not been verified. Run `python3 /tmp/rb_eval.py /tmp/rbr` to get the actual score.
