@@ -11,6 +11,16 @@ GAMMA = 0.003
 SLOTS = 72
 
 
+def weight(rank, place):
+    w = 0.0
+    for t in range(1, SLOTS + 1):
+        sd = A + B * math.sqrt(t)
+        decay = max(0.02, 1 - GAMMA * t)
+        kernel = (1 - EPS) * math.exp(-0.5 * ((place - rank) / sd) ** 2) / sd + EPS / N
+        w += decay * kernel
+    return w
+
+
 def main():
     in_dir = os.environ.get('MAKEFUN_INPUT_DIR', '/input')
     out_dir = os.environ.get('MAKEFUN_OUTPUT_DIR', '/output')
@@ -30,21 +40,9 @@ def main():
             cands.append((u, e['rank']))
     top10 = [u for u, _ in cands[:10]]
 
-    sds = []
-    for t in range(1, SLOTS + 1):
-        sd = A + B * math.sqrt(t)
-        decay = max(0.02, 1 - GAMMA * t)
-        sds.append((sd, decay))
-
     rows = []
     for k in range(1, 11):
-        ws = []
-        for u, r in cands:
-            w = 0.0
-            for sd, decay in sds:
-                kernel = (1 - EPS) * math.exp(-0.5 * ((k - r) / sd) ** 2) / sd + EPS / N
-                w += decay * kernel
-            ws.append((u, w))
+        ws = [(u, weight(r, k)) for u, r in cands]
         total = sum(w for _, w in ws)
         if total <= 0:
             continue
